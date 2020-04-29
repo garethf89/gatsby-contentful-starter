@@ -1,3 +1,3 @@
-## Alex Portfolio Website
+## Starter for Gatsby
 
 ### Gatsby / React / Contentful / Storybook - yarn
