@@ -1,10 +1,28 @@
+let contentfulConfig
+try {
+    contentfulConfig = require("./.contentful")
+} catch (e) {
+    contentfulConfig = {
+        production: {
+            spaceId: process.env.SPACE_ID,
+            accessToken: process.env.ACCESS_TOKEN,
+        },
+    }
+} finally {
+    const { spaceId, accessToken } = contentfulConfig.production
+    if (!spaceId || !accessToken) {
+        throw new Error(
+            "Contentful space ID and access token need to be provided."
+        )
+    }
+}
 module.exports = {
     siteMetadata: {
-        title: "Alex",
-        description: "Portfolio of Web Designer Alex Ionna",
+        title: "Gatsby Contentful Starter",
+        description: "Gatsby Contentful Starter",
         siteUrl: "http://TODO",
         author: "Gareth Ferguson",
-        image: "/images/AlexLogo.jpg",
+        image: "/images/Logo.jpg",
         menuLinks: [
             {
                 name: "Home",
@@ -41,22 +59,44 @@ module.exports = {
         `gatsby-transformer-sharp`,
         `gatsby-plugin-sharp`,
         {
+            resolve: "gatsby-plugin-transition-link",
+            options: {
+                layout: require.resolve(`./src/components/layout.js`),
+                injectPageProps: false,
+            },
+        },
+        {
             resolve: `gatsby-plugin-manifest`,
             options: {
-                name: `Alex Ionna Portfolio`,
-                short_name: `Alex`,
+                name: `Gatsby Contentful Starter`,
+                short_name: `GCS`,
                 start_url: `/`,
                 background_color: `#000000`,
                 theme_color: `#000000`,
                 display: `minimal-ui`,
-                icon: `static/images/AlexLogo.png`,
+                icon: `static/images/Logo.png`,
             },
         },
         {
             resolve: `gatsby-plugin-schema-snapshot`,
             options: {
                 path: `./src/gatsby/schema/schema.gql`,
-                update: true,
+                update: false,
+            },
+        },
+        {
+            resolve: "gatsby-source-contentful",
+            options:
+                process.env.NODE_ENV === "development"
+                    ? contentfulConfig.development
+                    : contentfulConfig.production,
+        },
+        {
+            resolve: `gatsby-plugin-netlify`,
+            options: {
+                headers: {
+                    // "/*": ["Cache-Control: max-age=604800"],
+                },
             },
         },
         // this (optional) plugin enables Progressive Web App + Offline functionality

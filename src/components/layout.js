@@ -1,51 +1,64 @@
-/**
- * Layout component that queries for data
- * with Gatsby's useStaticQuery component
- *
- * See: https://www.gatsbyjs.org/docs/use-static-query/
- */
+import * as Sentry from "@sentry/browser"
 
-import { graphql, useStaticQuery } from "gatsby"
+import React, { useContext, useEffect, useState } from "react"
 
+import Footer from "./footer"
 import { Global } from "@emotion/core"
 import Header from "./header"
-import PropTypes from "prop-types"
-import React from "react"
+import SEO from "./seo"
 import globalStyles from "../styles/globals"
+import { globals } from "../state/state"
 import styled from "@emotion/styled"
+import { supportsWebP } from "../helpers/support/webp"
 
 const Root = styled.div`
     font-family: ${props => props.theme.fonts.body};
+    p,
+    li {
+        font-size: 1.13rem;
+        line-height: 1.6;
+        font-weight: 200;
+    }
 `
-const Layout = ({ children }) => {
-    const data = useStaticQuery(graphql`
-        query SiteTitleQuery {
-            site {
-                siteMetadata {
-                    title
-                }
-            }
-        }
-    `)
 
+const TemplateWrap = ({ children, description, image, data, path }) => {
+    const { dispatch } = useContext(globals)
+    const [initGlobals, setInitGlobals] = useState(false)
+
+    const { title } = (data && data.page) || ""
+
+    const home = path === "/"
+
+    useEffect(() => {
+        if (!initGlobals) {
+            if (process.env.NODE_ENV === "production") {
+                Sentry.init({
+                    dsn: "",
+                })
+            }
+            if (!supportsWebP()) {
+                dispatch({ type: "WEBP", webp: false })
+            }
+
+            setInitGlobals(true)
+        }
+    }, [])
     return (
         <Root>
-            <Header siteTitle={data.site.siteMetadata.title} />
-            <div>
-                <main>{children}</main>
-                <footer>
-                    © {new Date().getFullYear()}, Built with
-                    {` `}
-                    <a href="https://www.gatsbyjs.org">Gatsby</a>
-                </footer>
-            </div>
             <Global styles={globalStyles} />
+            <SEO
+                pageTitle={title}
+                pageDescription={description}
+                pageImage={image}
+            />
+            <Header siteTitle={title} />
+            <main>{children}</main>
+            <Footer wide={home} />
         </Root>
     )
 }
 
-Layout.propTypes = {
-    children: PropTypes.node.isRequired,
+const PageLayout = props => {
+    return <TemplateWrap {...props} />
 }
-
-export default Layout
+export default PageLayout
